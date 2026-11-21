@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>jail-path — Live Security Evaluation Demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: #111827;
+      --card-border: #1f293d;
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --accent: #3b82f6;
+      --accent-hover: #2563eb;
+      --green: #10b981;
+      --green-bg: rgba(16, 185, 129, 0.12);
+      --green-border: rgba(16, 185, 129, 0.3);
+      --red: #ef4444;
+      --red-bg: rgba(239, 68, 68, 0.12);
+      --red-border: rgba(239, 68, 68, 0.3);
+      --amber: #f59e0b;
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      line-height: 1.5;
+      padding: 2rem 1rem;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 900px;
+    }
+
+    header {
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+
+    .badge-bar {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+      margin-bottom: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.2rem 0.6rem;
+      border-radius: 9999px;
+      text-decoration: none;
+      background: #1e293b;
+      color: #93c5fd;
+      border: 1px solid #334155;
+      transition: border-color 0.15s;
+    }
+
+    .badge:hover {
+      border-color: var(--accent);
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      margin-bottom: 0.5rem;
+      color: #fff;
+    }
+
+    h1 span {
+      color: #60a5fa;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 0.98rem;
+      max-width: 650px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .card-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .presets-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 0.75rem;
+    }
+
+    .preset-group-title {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin: 0.5rem 0 0.35rem;
+    }
+
+    .preset-btn {
+      background: #1a2234;
+      border: 1px solid #28354f;
+      color: #e2e8f0;
+      padding: 0.6rem 0.8rem;
+      border-radius: 8px;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+      transition: all 0.15s ease;
+      width: 100%;
+    }
+
+    .preset-btn:hover {
+      border-color: var(--accent);
+      background: #202b42;
+      transform: translateY(-1px);
+    }
+
+    .preset-label {
+      font-family: var(--font-sans);
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .preset-btn.safe {
+      border-left: 3px solid var(--green);
+    }
+
+    .preset-btn.attack {
+      border-left: 3px solid var(--red);
+    }
+
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: #d1d5db;
+      margin-bottom: 0.4rem;
+    }
+
+    .input-field {
+      width: 100%;
+      background: #0d1322;
+      border: 1px solid #28354f;
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      color: #fff;
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .input-field:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+    }
+
+    .toggles-row {
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.25rem;
+      padding: 0.8rem 1rem;
+      background: #0d1322;
+      border-radius: 8px;
+      border: 1px solid #1f293d;
+    }
+
+    .toggle-label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.82rem;
+      color: #cbd5e1;
+      cursor: pointer;
+    }
+
+    .toggle-label input {
+      accent-color: var(--accent);
+      cursor: pointer;
+      width: 16px;
+      height: 16px;
+    }
+
+    .submit-btn {
+      width: 100%;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 0.85rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: background 0.15s;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .submit-btn:hover {
+      background: var(--accent-hover);
+    }
+
+    .result-container {
+      margin-top: 1.5rem;
+      display: none;
+    }
+
+    .result-status {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.85rem 1.2rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .result-status.safe {
+      background: var(--green-bg);
+      border: 1px solid var(--green-border);
+      color: #34d399;
+    }
+
+    .result-status.blocked {
+      background: var(--red-bg);
+      border: 1px solid var(--red-border);
+      color: #f87171;
+    }
+
+    .result-status.error {
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      color: #fbbf24;
+    }
+
+    .code-block {
+      background: #090d16;
+      border: 1px solid #1f293d;
+      border-radius: 8px;
+      padding: 1rem;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: #e5e7eb;
+      overflow-x: auto;
+      margin-top: 0.5rem;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .field-row {
+      margin-bottom: 0.8rem;
+    }
+
+    .field-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    footer {
+      text-align: center;
+      color: #6b7280;
+      font-size: 0.8rem;
+      margin-top: 2rem;
+    }
+
+    footer a {
+      color: #9ca3af;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="badge-bar">
+        <a class="badge" href="https://www.npmjs.com/package/jail-path" target="_blank" rel="noreferrer">
+          <span>📦</span> npm jail-path@1.0.0
+        </a>
+        <a class="badge" href="https://github.com/Vishwajit0607/jail-path" target="_blank" rel="noreferrer">
+          <span>🐙</span> GitHub: Vishwajit0607/jail-path
+        </a>
+        <span class="badge" style="color: #34d399; border-color: rgba(16, 185, 129, 0.3)">
+          <span>🛡️</span> Zero Dependencies
+        </span>
+      </div>
+      <h1>jail-path <span>Security Evaluator</span></h1>
+      <p class="subtitle">
+        Interactive evaluation workbench demonstrating how <code>jail-path</code> enforces strict filesystem boundary confinement against directory traversal and poison byte injections.
+      </p>
+    </header>
+
+    <!-- Presets Section -->
+    <div class="card">
+      <div class="card-title">
+        <span>⚡</span> Quick Test Attack & Valid Presets
+      </div>
+      
+      <div class="preset-group-title">Normal / Valid File Paths (Should Allow)</div>
+      <div class="presets-grid" style="margin-bottom: 1rem;">
+        <button class="preset-btn safe" onclick="setPreset('invoices/2026/report.pdf')">
+          <code>invoices/2026/report.pdf</code>
+          <span class="preset-label">Standard nested directory path</span>
+        </button>
+        <button class="preset-btn safe" onclick="setPreset('/documents/annual_review.docx')">
+          <code>/documents/annual_review.docx</code>
+          <span class="preset-label">Leading slash safely mapped to root</span>
+        </button>
+        <button class="preset-btn safe" onclick="setPreset('assets/avatars/user_401.png')">
+          <code>assets/avatars/user_401.png</code>
+          <span class="preset-label">Multi-level subresource</span>
+        </button>
+      </div>
+
+      <div class="preset-group-title">Directory Traversal Attacks (Should Block)</div>
+      <div class="presets-grid" style="margin-bottom: 1rem;">
+        <button class="preset-btn attack" onclick="setPreset('../../etc/passwd')">
+          <code>../../etc/passwd</code>
+          <span class="preset-label">POSIX dot-dot traversal</span>
+        </button>
+        <button class="preset-btn attack" onclick="setPreset('..\\windows\\win.ini')">
+          <code>..\windows\win.ini</code>
+          <span class="preset-label">Windows backslash escape</span>
+        </button>
+        <button class="preset-btn attack" onclick="setPreset('../uploads_backup/secrets.json')">
+          <code>../uploads_backup/secrets.json</code>
+          <span class="preset-label">Boundary prefix overlap exploit</span>
+        </button>
+      </div>
+
+      <div class="preset-group-title">Malformed & Injection Vectors (Should Block)</div>
+      <div class="presets-grid">
+        <button class="preset-btn attack" onclick="setPreset('avatar.png\0.exe')">
+          <code>avatar.png\0.exe</code>
+          <span class="preset-label">Poison null-byte injection</span>
+        </button>
+        <button class="preset-btn attack" onclick="setPreset('CON')">
+          <code>CON</code>
+          <span class="preset-label">DOS reserved device name</span>
+        </button>
+        <button class="preset-btn attack" onclick="setPreset('file.txt:hidden_stream')">
+          <code>file.txt:hidden_stream</code>
+          <span class="preset-label">Windows Alternate Data Stream</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Live Execution Workbench -->
+    <div class="card">
+      <div class="card-title">
+        <span>🧪</span> Live Evaluation Sandbox
+      </div>
+
+      <form id="evalForm">
+        <div class="form-group">
+          <label for="rootDir">Sandbox Root Directory Boundary (Trusted)</label>
+          <input type="text" id="rootDir" class="input-field" value="/var/app/uploads" required>
+        </div>
+
+        <div class="form-group">
+          <label for="userPath">Untrusted User Input Path</label>
+          <input type="text" id="userPath" class="input-field" placeholder="e.g. invoices/2026/report.pdf or ../../etc/passwd" value="invoices/2026/report.pdf" required>
+        </div>
+
+        <div class="toggles-row">
+          <label class="toggle-label">
+            <input type="checkbox" id="allowRootAccess">
+            <span>allowRootAccess (Permit resolving exact root itself)</span>
+          </label>
+          <label class="toggle-label">
+            <input type="checkbox" id="windowsDeviceCheck" checked>
+            <span>windowsDeviceCheck (Filter DOS devices & stream names)</span>
+          </label>
+        </div>
+
+        <button type="submit" class="submit-btn" id="submitBtn">
+          <span>🛡️</span> Evaluate Path with jail-path
+        </button>
+      </form>
+
+      <!-- Results Display -->
+      <div id="resultContainer" class="result-container">
+        <div id="resultStatus" class="result-status"></div>
+
+        <div class="field-row">
+          <div class="field-label">Evaluation Summary</div>
+          <div id="resultMessage" style="font-size: 0.9rem; margin-top: 0.2rem;"></div>
+        </div>
+
+        <div class="field-row" id="resolvedPathRow">
+          <div class="field-label">Resolved Safe Path</div>
+          <div id="resolvedPath" class="code-block" style="color: #6ee7b7;"></div>
+        </div>
+
+        <div class="field-row" id="errorDetailsRow" style="display: none;">
+          <div class="field-label">Security Exception Details</div>
+          <div id="errorDetails" class="code-block" style="color: #fca5a5;"></div>
+        </div>
+
+        <div class="field-row">
+          <div class="field-label">API Response Payload</div>
+          <div id="jsonResponse" class="code-block" style="font-size: 0.78rem; max-height: 220px; overflow-y: auto;"></div>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      Evaluation demo for <strong>jail-path</strong> package &bull; Designed for Node.js 20+ &bull;
+      <a href="https://github.com/Vishwajit0607/jail-path" target="_blank" rel="noreferrer">GitHub Repository</a>
+    </footer>
+  </div>
+
+  <script>
+    function setPreset(pathVal) {
+      document.getElementById('userPath').value = pathVal;
+      document.getElementById('evalForm').dispatchEvent(new Event('submit'));
+    }
+
+    document.getElementById('evalForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const rootDir = document.getElementById('rootDir').value.trim();
+      const userPath = document.getElementById('userPath').value;
+      const allowRootAccess = document.getElementById('allowRootAccess').checked;
+      const windowsDeviceCheck = document.getElementById('windowsDeviceCheck').checked;
+
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.disabled = true;
+      submitBtn.innerText = 'Evaluating...';
+
+      const resultContainer = document.getElementById('resultContainer');
+      const resultStatus = document.getElementById('resultStatus');
+      const resultMessage = document.getElementById('resultMessage');
+      const resolvedPathRow = document.getElementById('resolvedPathRow');
+      const resolvedPath = document.getElementById('resolvedPath');
+      const errorDetailsRow = document.getElementById('errorDetailsRow');
+      const errorDetails = document.getElementById('errorDetails');
+      const jsonResponse = document.getElementById('jsonResponse');
+
+      try {
+        const res = await fetch('/api/resolve', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            rootDir,
+            userPath,
+            allowRootAccess,
+            windowsDeviceCheck,
+          })
+        });
+
+        const data = await res.json();
+        resultContainer.style.display = 'block';
+        jsonResponse.textContent = JSON.stringify(data, null, 2);
+
+        if (data.safe) {
+          resultStatus.className = 'result-status safe';
+          resultStatus.innerHTML = '<span>✅ SAFE & CONFINED</span> <span>Status: HTTP ' + res.status + ' OK</span>';
+          resultMessage.textContent = data.message;
+          resolvedPathRow.style.display = 'block';
+          resolvedPath.textContent = data.result.resolvedPath;
+          errorDetailsRow.style.display = 'none';
+        } else {
+          resultStatus.className = 'result-status blocked';
+          resultStatus.innerHTML = '<span>🚫 ATTACK BLOCKED</span> <span>Status: HTTP ' + res.status + ' Forbidden</span>';
+          resultMessage.textContent = data.message;
+          resolvedPathRow.style.display = 'none';
+          errorDetailsRow.style.display = 'block';
+          errorDetails.textContent = `${data.errorType} [${data.code || 'N/A'}]: ${data.message}\n` + (data.details ? `Notice: ${data.details}` : '');
+        }
+      } catch (err) {
+        resultContainer.style.display = 'block';
+        resultStatus.className = 'result-status error';
+        resultStatus.innerHTML = '<span>⚠️ Network / Server Error</span>';
+        resultMessage.textContent = err.message;
+        resolvedPathRow.style.display = 'none';
+        errorDetailsRow.style.display = 'block';
+        errorDetails.textContent = err.stack || err.message;
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<span>🛡️</span> Evaluate Path with jail-path';
+      }
+    });
+  </script>
+</body>
+</html>
