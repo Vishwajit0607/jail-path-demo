@@ -26,7 +26,6 @@
 
 ### 2. Install & Start
 ```bash
-cd demo
 npm install
 npm start
 ```
@@ -38,19 +37,18 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ## Deployment Instructions
 
 ### Deploy to Vercel (Recommended)
-This repository includes a preconfigured `vercel.json`.
+This repository includes a preconfigured `vercel.json` at root.
 
-1. Push your repository to GitHub.
-2. In the [Vercel Dashboard](https://vercel.com/new), select your repository.
-3. If deploying from a subfolder, set **Root Directory** to `demo`.
-4. Click **Deploy**. Vercel will automatically build and deploy the Node.js server.
+1. In the [Vercel Dashboard](https://vercel.com/new), select your repository `Vishwajit0607/jail-path-demo`.
+2. Leave the Root Directory as default (`./`).
+3. Click **Deploy**. Vercel will automatically build and deploy the Node.js server.
 
 ### Deploy to Render
-This repository includes a `render.yaml` blueprint.
+This repository includes a `render.yaml` blueprint at root.
 
 1. Connect your repository to [Render](https://dashboard.render.com/).
 2. Select **Web Service** with:
-   - **Root Directory:** `demo`
+   - **Root Directory:** (leave blank or `./`)
    - **Build Command:** `npm install`
    - **Start Command:** `npm start`
 3. Click **Create Web Service**.
